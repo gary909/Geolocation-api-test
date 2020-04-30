@@ -31,3 +31,4 @@ function displayError(error) {
     var div = document.getElementById("location");
     div.innerHTML = errorMessage;
 }
+
