@@ -1,14 +1,21 @@
-window.onload = getMyLocation;
+/* myLoc.js */
 
-var ourCoods = {
+var map = null;
+var ourCoords = {
     latitude: 47.624851,
     longitude: -122.52099
 };
 
+window.onload = getMyLocation;
+
 function getMyLocation() {
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(displayLocation, displayError);
-    } else {
+
+        navigator.geolocation.getCurrentPosition(
+            displayLocation,
+            displayError);
+    }
+    else {
         alert("Oops, no geolocation support");
     }
 }
@@ -22,16 +29,56 @@ function displayLocation(position) {
 
     var km = computeDistance(position.coords, ourCoords);
     var distance = document.getElementById("distance");
-    distance.innerHTML = "You are " + km + " km from the HQ";
+    distance.innerHTML = "You are " + km + " km from the WickedlySmart HQ";
+
+    showMap(position.coords);
 }
 
-/*Error Handler Function */
+
+// --------------------- Ready Bake ------------------
+//
+// Uses the Spherical Law of Cosines to find the distance
+// between two lat/long points
+//
+function computeDistance(startCoords, destCoords) {
+    var startLatRads = degreesToRadians(startCoords.latitude);
+    var startLongRads = degreesToRadians(startCoords.longitude);
+    var destLatRads = degreesToRadians(destCoords.latitude);
+    var destLongRads = degreesToRadians(destCoords.longitude);
+
+    var Radius = 6371; // radius of the Earth in km
+    var distance = Math.acos(Math.sin(startLatRads) * Math.sin(destLatRads) +
+        Math.cos(startLatRads) * Math.cos(destLatRads) *
+        Math.cos(startLongRads - destLongRads)) * Radius;
+
+    return distance;
+}
+
+function degreesToRadians(degrees) {
+    radians = (degrees * Math.PI) / 180;
+    return radians;
+}
+
+// ------------------ End Ready Bake -----------------
+
+function showMap(coords) {
+    var googleLatAndLong = new google.maps.LatLng(coords.latitude,
+        coords.longitude);
+    var mapOptions = {
+        zoom: 10,
+        center: googleLatAndLong,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+    var mapDiv = document.getElementById("map");
+    map = new google.maps.Map(mapDiv, mapOptions);
+}
+
 function displayError(error) {
-    var errorType = {
-        0: "Unkwown Error",
-        1: "Permission denied by user",
+    var errorTypes = {
+        0: "Unknown error",
+        1: "Permission denied",
         2: "Position is not available",
-        3: "Request timed out"
+        3: "Request timeout"
     };
     var errorMessage = errorTypes[error.code];
     if (error.code == 0 || error.code == 2) {
@@ -39,26 +86,5 @@ function displayError(error) {
     }
     var div = document.getElementById("location");
     div.innerHTML = errorMessage;
-}
-
-/*Spherical Law of Cosines Equations */
-function computeDistance(startCoords, destCoords) {
-    var startLatRads = degreesToRadians(startCoords.latitude);
-    var startLongRads = degreesToRadians(startCoords.longitude);
-    var destLatRads = degreesToRadians(destCoords.latitude);
-    var destLongRads = degreesToRadians(destCoords.longitude);
-
-    var Radius = 6371; // radius of Earth in km
-    var distance = Math.acos(Math.sin(startLatRads) * Math.sin(destLatRads) +
-        Math.cos(startLatRads) * Math.cos(destLatRads) *
-        Math.cos(startLongRads - destLongRads)) * Radius;
-
-    return distance;
-
-}
-
-function degreesToRadians(degrees) {
-    var radians = (degrees * Math.PI) / 180;
-    return radians
 }
 
